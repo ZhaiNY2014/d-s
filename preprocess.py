@@ -21,7 +21,7 @@ class Preprocess:
     ]
     output:
     a list len = 122 and complete with [0,1]
-    [duration, protocol_type.tcp, protocol_type.udp, protocol_type.cmp, service.aol, service.auth, service.bgp, 
+    [data[duration, protocol_type.tcp, protocol_type.udp, protocol_type.cmp, service.aol, service.auth, service.bgp, 
     service.courier, service.csnet_ns, service.ctf, service.daytime, service.discard, service.domain, service.domain_u, 
     service.echo, service.eco_i, service.ecr_i, service.efs, service.exec, service.finger, service.ftp, 
     service.ftp_data, service.gopher, service.harvest, service.hostnames, service.http, service.http_2784, 
@@ -38,7 +38,7 @@ class Preprocess:
      srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, 
      srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, 
      dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, 
-     dst_host_rerror_rate, dst_host_srv_rerror_rate]
+     dst_host_rerror_rate, dst_host_srv_rerror_rate], class[class]]
     """
     def __init__(self, data):
         # print("init")
@@ -92,6 +92,7 @@ class Preprocess:
                 attr = attrs[i]  # 取属性
                 if isinstance(attr[1], list):
                     if attr[0] == 'class':
+                        # TODO(class):处理class字段
                         pass
                     else:
                         v = value
