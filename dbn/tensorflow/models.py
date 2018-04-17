@@ -71,6 +71,9 @@ class BaseTensorFlowModel(BaseModel):
 
 
 class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
+    """
+    这个类实现了一个二进制的受限玻尔兹曼机
+    """
     def fit(self, X):
         self.n_visible_units = X.shape[1]
         self._build_model()
@@ -120,7 +123,12 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
             else:
                 raise ValueError("Invalid activation function.")
 
-    def _build_model(self, weights= None):
+    def _build_model(self, weights=None):
+        """
+        构建TensorFlow模块
+        :param weights: 
+        :return: 
+        """
         self._initialize_weights(weights)
         self.visible_units_placeholder = tf.placeholder(tf.float32, shape=[None, self.n_visible_units])
         self.compute_hidden_units_op = self._activation_function_class(
@@ -171,6 +179,11 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
         return instance
 
     def _stochastic_gradient_descent(self, _data):
+        """
+        执行随机梯度下降优化算法
+        :param _data: 
+        :return: 
+        """
         for iteration in range(1, self.n_epochs + 1):
             idx = np.random.permutation(len(_data))
             data = _data[idx]
@@ -187,15 +200,28 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
                 print(">> Epoch %d finished \tRBM Reconstruction error %f" % (iteration, error))
 
     def _compute_hidden_units_matrix(self, matrix_visible_units):
+        """
+        计算隐层单元的输出
+        :param matrix_visible_units: 
+        :return: 
+        """
         return sess.run(self.compute_hidden_units_op,
                         feed_dict={self.visible_units_placeholder: matrix_visible_units})
 
     def _compute_visible_units_matrix(self, matrix_hidden_units):
+        """
+        计算显层单元的输出
+        :param matrix_hidden_units: 
+        :return: 
+        """
         return sess.run(self.compute_visible_units_op,
                         feed_dict={self.hidden_units_placeholder: matrix_hidden_units})
 
 
 class UnsupervisedDBN(BaseUnsupervisedDBN, BaseTensorFlowModel):
+    """
+    无监督的基于TensorFlow实现的DBN
+    """
     def __init__(self, **kwargs):
         super(UnsupervisedDBN, self).__init__(**kwargs)
         self.rbm_class = BinaryRBM

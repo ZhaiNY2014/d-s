@@ -98,6 +98,11 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
                 print(">> Epoch %d finished \tRBM Reconstruction error %f" % (iteration, error))
 
     def _contrastive_divergence(self, vector_visible_units):
+        """
+        使用对比散度法计算梯度
+        :param vector_visible_units: 
+        :return: 
+        """
         v_0 = vector_visible_units
         v_t = np.array(v_0)
 

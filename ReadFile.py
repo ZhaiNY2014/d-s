@@ -3,67 +3,43 @@
 
 
 class ReadFile(object):
-    def __init__(self, filePath):
-        # 返回的list
-        # [set_name,
-        #   attrs[
-        #       attr1[attr_name,attr_value[attr_value1, ...],
-        #       attr2[attr_name,attr_value[attr_value1, ...],
-        #       ...
-        #   ],
-        #   data[
-        #        [,,,,],
-        #        [,,,,],
-        #        ...
-        #       ]
-        # ]
-        set_name = ""
-        attrs = []
-        data = []
-        self.list = [set_name, attrs, data]
-        with open(filePath, 'r') as file:
-            data_tag = False
-            for line in file.readlines():
-                if data_tag is False:
-                    if line[0] == '@':
-                        kind = line.split(' ', 1)
-                        # 文件名
-                        if kind[0].strip() == "@relation":
-                            # set_name
-                            self.list[0] = trim_mark(source=kind[1])
-                        elif kind[0].strip() == "@attribute":
-                            # attr
-                            if '{' in kind[1] and '}' in kind[1]:
-                                attr_name = trim_mark(kind[1].split(' ', 1)[0])
-                                tmp_values = trim_brace(kind[1].split(' ', 1)[1]).split(',')
-                                attr_values = []
-                                for tmp_value in tmp_values:
-                                    attr_value = tmp_value.split('\'')
-                                    attr_values.append(attr_value[1])
-                                attr = [attr_name, attr_values]
-                                attrs.append(attr)
-                            else:
-                                attr = [trim_mark(kind[1].strip()), 'num']
-                                attrs.append(attr)
-                        elif kind[0].strip() == "@data":
-                            data_tag = True
-                elif data_tag is True:
-                    data_values = line.strip().split(',')
-                    data.append(data_values)
+    def __init__(self, pakage_path):
+        """
+        return_list[
+            attr_name[],
+            train_data[],
+            test_data[],
+            attack_type[]
+        ]
+        """
+        train_data = []
+        test_data = []
+        attr_name = []
+        attack_type = {}
+
+        with open(pakage_path + '/KDDTrain+.csv') as train_file:
+            for line in train_file.readlines():
+                train_data.append(line.strip())
+
+        with open(pakage_path + '/KDDTest+.csv') as test_file:
+            for line in test_file.readlines():
+                test_data.append(line.strip())
+
+        with open(pakage_path + '/Field Names.csv') as field_name:
+            for line in field_name.readlines():
+                _line = line.split(',')
+                if _line[1].strip() == 'continuous':
+                    attr_name.append(_line[0])
+                elif _line[1].strip() == 'symbolic':
+                    attr_name.append(list().append(_line[0]))
+
+        with open(pakage_path + '/Attack Types.csv') as attack_type_file:
+            lines = attack_type_file.readlines()
+            for i, line in zip(list(range(len(lines))), lines):
+                attack_type[str(i)] = line.split(',')[1].strip()
+
+        self.return_data_set = [attr_name, train_data, test_data, attack_type]
 
     def get_data(self):
-        data = self.list
+        data = self.return_data_set
         return data
-
-
-def trim_mark(source):
-    source = source.strip()
-    source = source.split('\'')[1]
-    return source
-
-
-def trim_brace(source):
-    source.strip()
-    source = source.strip('{')
-    source = source.strip('}')
-    return source
