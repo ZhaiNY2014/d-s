@@ -2,26 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import operator
+import numpy as np
 
 
 class Preprocess:
     """
     input:
-    [set_name,
-      attrs[
-          attr1[attr_name,attr_value[attr_value1, ...],
-          attr2[attr_name,attr_value[attr_value1, ...],
-          ...
-      ],
-      data[
-           [,,,,],
-           [,,,,],
-           ...
-          ]
-    ]
+    list[
+        attr_name[],
+        train_data[],
+        test_data[],
+        attack_type[]
+        ]
     output:
-    a list len = 122 and complete with [0,1]
-    [data[duration, protocol_type.tcp, protocol_type.udp, protocol_type.cmp, service.aol, service.auth, service.bgp, 
+    a tuple include (train_data, test_data), and both are tuple like (data, targit),data is a list len = 122 
+    and complete with 0-1 normalize:
+    [duration, protocol_type.tcp, protocol_type.udp, protocol_type.cmp, service.aol, service.auth, service.bgp, 
     service.courier, service.csnet_ns, service.ctf, service.daytime, service.discard, service.domain, service.domain_u, 
     service.echo, service.eco_i, service.ecr_i, service.efs, service.exec, service.finger, service.ftp, 
     service.ftp_data, service.gopher, service.harvest, service.hostnames, service.http, service.http_2784, 
@@ -38,127 +34,112 @@ class Preprocess:
      srv_count, serror_rate, srv_serror_rate, rerror_rate, srv_rerror_rate, same_srv_rate, diff_srv_rate, 
      srv_diff_host_rate, dst_host_count, dst_host_srv_count, dst_host_same_srv_rate, dst_host_diff_srv_rate, 
      dst_host_same_src_port_rate, dst_host_srv_diff_host_rate, dst_host_serror_rate, dst_host_srv_serror_rate, 
-     dst_host_rerror_rate, dst_host_srv_rerror_rate], class[class]]
+     dst_host_rerror_rate, dst_host_srv_rerror_rate]
+     targit is a list mapping 4 types attack_type 
     """
     def __init__(self, data):
-        # print("init")
-        self.data = data
-        # dict 用于快速确定属性所在的位置
-        self.dict = {}
-        self.attr_min_list = init_output_list()
-        self.attr_max_list = init_output_list()
+        self._train_data = data[1]
+        self._test_data = data[2]
+        self._attr_name = data[0]
+        self._attack_type = data[3]
 
     def do_preprocess(self):
-        # print("dopp")
-        set_name = self.data[0]
-        attrs = self.data[1]
-        datas = self.data[2]
-        attr_list = []
-        Preprocess.init_dict(self, attrs)
-        pp_data_list = self.preprocess_data(datas)
-        nor_data_list = self.normalize(pp_data_list)
-        # print(len(output_list))
-        with open("file/dataset_pp.txt", 'w') as f:
-            for i in nor_data_list:
-                f.write(i.__str__() + '\n')
-        return nor_data_list
+        self._init_dict()
+        # a tuple(train_data,train_targit), label #0 is data and #1 is targit
+        train_pp = self._preprocess_data(self._train_data)
+        # a tuple(test_data,test_targit)
+        test_pp = self._preprocess_data(self._test_data)
+        train_n = _normalize(train_pp)
+        test_n = _normalize(test_pp)
 
-    def init_dict(self, attrs):
-        # print("init dict")
-        for i in range(len(attrs)):
-            attr = attrs[i]
-            if isinstance(attr[1], list):
-                if operator.eq(attr[1], ['0', '1']):
-                    self.dict[attr[0]] = i
-                elif attr[0] == 'class':
-                    self.dict[attr[0]] = i
+        return_dataset = (train_n, test_n)
+        return return_dataset
+
+    def _init_dict(self):
+        self.dict = {}
+        prefix = ""
+        index = 0
+        for i in range(len(self._attr_name)):
+            attr = self._attr_name[i]
+            if attr.__contains__('.'):
+                if attr.split('.')[0] == prefix:
+                    pass
                 else:
-                    for attr_s in attr[1]:
-                        key = attr[0] + '.' + attr_s
-                        self.dict[key] = i
-            elif isinstance(attr[1], str):
-                self.dict[attr[0]] = i
+                    prefix = attr.split('.')[0]
+                    self.dict[index] = i
+                    index += 1
             else:
-                print("【错误】：" + attr)
+                prefix = attr
+                self.dict[index] = i
+                index += 1
 
-    def preprocess_data(self, datas):
-        # print("doing ppdata")
-        output_list = []
-        attrs = self.data[1]
-        for data in datas:  # data:一个41维的向量
-            output = init_output_list()
-            i = 0
-            for value in data:  # value: 每一维的值
-                attr = attrs[i]  # 取属性
-                if isinstance(attr[1], list):
-                    if attr[0] == 'class':
-                        # TODO(class):处理class字段
-                        pass
-                    else:
-                        v = value
-                        if operator.ne(attr[1], ['0', '1']):
-                            v = 1
-                        output[self.dict.get(attr[0] + '.' + value, -1)] = v
-                else:
-                    output[self.dict.get(attr[0], -1)] = value
-                i = i + 1
-            output_list.append(output)
-        return output_list
-
-    def normalize(self, datas):
-        # print("doing normalize")
-        outlists = []
-        datas = self.normalize_str2num(datas)
-        avg = normalize_get_avg_list(datas)
+    def _preprocess_data(self, X):
+        _input_data = X
+        datas = list()
+        datas_expend = list()
+        targit = list()
+        # 分离data和targit
+        for data in _input_data:
+            _datas = data[:41]
+            _targit = self._attack_type[data[42]]
+            datas.append(_datas)
+            targit.append(_targit)
+        # 处理data
         for data in datas:
-            outlist = init_output_list()
+            data_expend = _init_output_list()
             for i in range(len(data)):
-                value = data[i]
-                if self.attr_max_list[i] != self.attr_min_list[i]:
-                    outlist[i] = (value - avg[i]) / (self.attr_max_list[i] - self.attr_min_list[i])
-                else:
-                    outlist[i] = value - avg[i]
-            outlists.append(outlist)
-        return outlists
+                if i == 1 or i == 2 or i == 3:  # 字符型需映射
+                    for j in range(self.dict[i], self.dict[i+1]):
+                        if data[i] == self._attr_name[j].split('.')[1]:
+                            data_expend[j] = 1.0
+                else:  # 数值型，无需映射
+                    data_expend[self.dict[i]] = float(data[i])
+            datas_expend.append(data_expend)
+        # 处理targit
+        _dict_targit = {'normal': 0, 'dos': 1, 'u2r': 2, 'r2l': 3, 'probe': 4, 'unknown': 5}
+        targit_class = list()
+        for i in range(len(targit)):
+            targit_class.append(_dict_targit[targit[i]])
 
-    def normalize_str2num(self, datas):
-        # print("str to num")
-        fdatas = []
-        for data in datas:
-            for i in range(len(data)):
-                value = data[i]
-                if isinstance(value, str):
-                    data[i] = float(value)
-                if self.attr_max_list[i] < data[i]:
-                    self.attr_max_list[i] = data[i]
-                if self.attr_min_list[i] > data[i]:
-                    self.attr_min_list[i] = data[i]
-            fdatas.append(data)
-        return fdatas
+        return datas_expend, targit_class
 
 
-def normalize_get_avg_list(datas):
-    # print("get avg list")
-    avg = init_output_list()
-    sums = init_output_list()
-    row = 0
-    for data in datas:
+def _normalize(X):
+    _datas = X[0]
+    output = list()
+    data_a = np.array(_datas)
+    _max = np.amax(data_a, 0).tolist()
+    _min = np.amin(data_a, 0).tolist()
+    for data in _datas:
+        outrow = _init_output_list()
         for i in range(len(data)):
-            v = data[i]
-            sums[i] = v + sums[i]
-            print("get sum , now:" + i.__str__())
-        row = row + 1
-    if row != 0:
-        for i in range(len(sums)):
-            s = sums[i]
-            avg[i] = s / row
-            print("get avg, now :" + i.__str__())
-    # print(avg)
-    return avg
+            if _max[i] - _min[i] != 0.:
+                value = (data[i] - _min[i]) / (_max[i] - _min[i])
+            else:
+                value = 0. if _max[i] == 0.0 else 1.
+            outrow[i] = value
+        output.append(outrow)
+
+    return output, X[1]
+
+    # def _normalize_str2num(self, datas):
+    #     # print("str to num")
+    #     fdatas = []
+    #     for data in datas:
+    #         for i in range(len(data)):
+    #             value = data[i]
+    #             if isinstance(value, str):
+    #                 data[i] = float(value)
+    #             if self.attr_max_list[i] < data[i]:
+    #                 self.attr_max_list[i] = data[i]
+    #             if self.attr_min_list[i] > data[i]:
+    #                 self.attr_min_list[i] = data[i]
+    #         fdatas.append(data)
+    #     return fdatas
 
 
-def init_output_list():
+def _init_output_list():
     output = []
-    for i in range(123):
+    for i in range(122):
         output.append(0.0)
     return output
