@@ -3,20 +3,13 @@
 
 import ReadFile
 import preprocess
-import dbn
-import svm
-import saveResult
+import dbn_model
+from svm import svm
 
 if __name__ == "__main__":
     file_data = ReadFile.ReadFile("D:\\PycharmProjects\\DBN-SVM\\NSL_KDD-master").get_data()
-    attr_name = file_data[0]
-    train_data = file_data[1]
-    test_data = file_data[2]
-    attack_type = file_data[3]
-    do_pp_train = preprocess.Preprocess(data=train_data)
-    do_pp_test = preprocess.Preprocess(data=test_data)
-    # print(data)
-    do_dbn = dbn.DBN(data=do_pp_train)
+    data_pp = preprocess.Preprocess(file_data).do_preprocess()
+    do_dbn = dbn_model.DBN(data_pp).do_dbn()
     data = do_dbn.doDBN()
     do_pp_test = preprocess.Preprocess(data=test_data)
     do_svm = svm.SVM(train_data=do_pp_train, test_data=do_pp_test)

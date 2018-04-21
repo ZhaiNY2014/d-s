@@ -10,7 +10,6 @@ class SVM:
     def __init__(self, train_data, test_data):
         self._train_data = train_data
         self._test_data = test_data
-    pass
 
 
 def doSVM():

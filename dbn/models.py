@@ -137,7 +137,7 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
 
     def _compute_visible_units(self, vector_hidden_units):
         h = np.expand_dims(vector_hidden_units, 0)
-        return np.squeeze(self._compute_visible_units_martrix(h))
+        return np.squeeze(self._compute_visible_units_matrix(h))
 
     def _compute_visible_units_matrix(self, matrix_hidden_units):
         return self._activation_function_class.function(np.dot(matrix_hidden_units, self.W) + self.b[np.newaxis, :])
@@ -146,7 +146,7 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
         v = vector_visible_units
         return - np.dot(self.b, v) - np.sum(np.log(1 + np.exp(np.dot(self.W, v) + self.c)))
 
-    def _compute_reconstrution_error(self, data):
+    def _compute_reconstruction_error(self, data):
         data_transformed = self.transform(data)
         data_reconstructed = self._reconstruct(data_transformed)
         return np.mean(np.sum((data_reconstructed - data) ** 2, 1))
@@ -206,7 +206,7 @@ class UnsupervisedDBN(BaseEstimator, TransformerMixin, BaseModel):
 class AbstractSupervisedDBN(BaseEstimator, BaseModel):
     __metaclass__ = ABCMeta
 
-    def __init__(self,unsupervised_dbn_class,
+    def __init__(self, unsupervised_dbn_class,
                  hidden_layers_structure=[100, 100],
                  activation_function='sigmoid',
                  optimization_algorithm='sgd',
@@ -255,6 +255,10 @@ class AbstractSupervisedDBN(BaseEstimator, BaseModel):
 
     def transform(self, *args):
         return self.unsupervised_dbn.transform(*args)
+
+    @abstractmethod
+    def _transform_labels_to_network_format(self, labels):
+        return
 
     @abstractmethod
     def _compute_output_units_matrix(self, matrix_visible_units):
@@ -421,7 +425,7 @@ class SupervisedDBNClassification(NumPyAbstractSupervisedDBN, ClassifierMixin):
         return new_labels
 
     def _transform_network_format_to_labels(self, indexes):
-        return list(map(lambda idx:self.idx_to_label_map[idx], indexes))
+        return list(map(lambda idx: self.idx_to_label_map[idx], indexes))
 
     def _compute_output_units(self, vector_visiable_units):
         v = vector_visiable_units
@@ -432,7 +436,7 @@ class SupervisedDBNClassification(NumPyAbstractSupervisedDBN, ClassifierMixin):
     def _compute_output_units_matrix(self, matrix_visible_units):
         matrix_scores = np.transpose(np.dot(self.W, np.transpose(matrix_visible_units)) + self.b[:, np.newaxis])
         exp_scores = np.exp(matrix_scores)
-        return  exp_scores / np.expand_dims(np.sum(exp_scores, axis=1), 1)
+        return exp_scores / np.expand_dims(np.sum(exp_scores, axis=1), 1)
 
     def _compute_output_layer_delta(self, label, predicted):
         dscores = np.append(predicted)

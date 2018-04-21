@@ -134,7 +134,7 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
         self.compute_hidden_units_op = self._activation_function_class(
             tf.transpose(tf.matmul(self.W, tf.transpose(self.visible_units_placeholder))) + self.c)
         self.hidden_units_placeholder = tf.placeholder(tf.float32, shape=[None, self.n_hidden_units])
-        self._compute_visible_unit_op = self._activation_function_class(
+        self.compute_visible_units_op = self._activation_function_class(
             tf.matmul(self.hidden_units_placeholder, self.W) + self.b)
         self.random_uniform_values = tf.Variable(tf.random_normal([self.batch_size, self.n_hidden_units]))
         sample_hidden_units_op = tf.to_float(self.random_uniform_values < self.compute_hidden_units_op)
