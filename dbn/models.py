@@ -6,6 +6,7 @@ from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin, Regre
 
 from dbn.activations import SigmoidActivationFunction, ReLUActivationFunction
 from dbn.utils import batch_generator
+import time
 
 
 class BaseModel(object):
@@ -42,6 +43,7 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
         self.contrastive_divergence_iter = contrastive_divergence_iter
         self.batch_size = batch_size
         self.verbose = verbose
+        self.W_list = list()
 
     def fit(self, X):
         self.n_visible_units = X.shape[1]
@@ -95,7 +97,8 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
                 self.c += self.learning_rate * (accum_delta_c / self.batch_size)
             if self.verbose:
                 error = self._compute_reconstruction_error(data)
-                print(">> Epoch %d finished \tRBM Reconstruction error %f" % (iteration, error))
+                print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
+                                  (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
 
     def _contrastive_divergence(self, vector_visible_units):
         """
@@ -275,223 +278,4 @@ class AbstractSupervisedDBN(BaseEstimator, BaseModel):
     @abstractmethod
     def _fine_tuning(self, data, _labels):
         return
-
-
-class NumPyAbstractSupervisedDBN(AbstractSupervisedDBN):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, **kwargs):
-        super(NumPyAbstractSupervisedDBN, self).__init__(UnsupervisedDBN, **kwargs)
-
-    def _compute_activations(self, sample):
-        input_data = sample
-        if self.dropout_p > 0:
-            r = np.random.binomial(1, self.p, len(input_data))
-            input_data *= r
-        layers_activation = list()
-
-        for rbm in self.unsupervised_dbn.rbm_layers:
-            input_data = rbm.transform(input_data)
-            if self.dropout_p > 0:
-                r = np.random.binomial(1, self.p, len(input_data))
-                input_data *= r
-            layers_activation.append(input_data)
-
-        input_data = self._compute_output_units(input_data)
-        layers_activation.append(input_data)
-        return layers_activation
-
-    def _stochastic_gradient_descent(self, _data, _labels):
-        if self.verbose:
-            matrix_error = np.zeros([len(_data), self.num_classes])
-        num_samples = len(_data)
-        accum_delta_W = [np.zeros(rbm.W.shape) for rbm in self.unsupervised_dbn.rbm_layers]
-        accum_delta_W.append(np.zeros(self.W.shape))
-        accum_delta_bias = [np.zeros(rbm.c.shape) for rbm in self.unsupervised_dbn.rbm_layers]
-        accum_delta_bias.append(np.zeros(self.b.shape))
-
-        for iteration in range(1, self.n_iter_backprop + 1):
-            idx = np.random.permutation(len(_data))
-            data = _data[idx]
-            labels = _labels[idx]
-            i = 0
-            for batch_data, batch_labels in batch_generator(self.batch_size, data, labels):
-                for arr1, arr2 in zip(accum_delta_W, accum_delta_bias):
-                    arr1[:], arr2[:] = .0, .0
-                for sample, label in zip(batch_data, batch_labels):
-                    delta_W, delta_bias, predicted = self._backpropagation(sample, label)
-                    for layer in range(len(self.unsupervised_dbn.rbm_layers) + 1):
-                        accum_delta_W[layer] += delta_W[layer]
-                        accum_delta_bias[layer] += delta_bias[layer]
-                    if self.verbose:
-                        loss = self._compute_loss(predicted, label)
-                        matrix_error[i, :] = loss
-                        i += 1
-                layer = 0
-                for rbm in self.unsupervised_dbn.rbm_layers:
-                    rbm.W = (1 - (
-                        self.learning_rate * self.l2_regularization) / num_samples) * rbm.W - self.learning_rate * (
-                        accum_delta_W[layer] / self.batch_size)
-                    rbm.c -= self.learning_rate * (accum_delta_bias[layer] / self.batch_size)
-                    layer += 1
-                self.W = (1 - (
-                    self.learning_rate * self.l2_regularization) / num_samples) * self.W - self.learning_rate * (
-                    accum_delta_W[layer] / self.batch_size)
-                self.b -= self.learning_rate * (accum_delta_bias[layer] / self.batch_size)
-            if self.verbose:
-                error = np.mean(np.sum(matrix_error, 1))
-                print(">> Epoch %d finished \tANN training loss %f" % (iteration, error))
-
-    def _backpropagation(self, input_vector, label):
-        x, y = input_vector, label
-        deltas = list()
-        list_layer_weights = list()
-        for rbm in self.unsupervised_dbn.rbm_layers:
-            list_layer_weights.append(rbm.W)
-        list_layer_weights.append(self.W)
-
-        layers_activation = self._compute_activations(input_vector)
-
-        activation_output_layer = layers_activation[-1]
-        delta_output_layer = self._compute_output_layer_delta(y, activation_output_layer)
-        deltas.append(delta_output_layer)
-        layer_idx = list(range(len(self.unsupervised_dbn.rbm_layers)))
-        layer_idx.reverse()
-        for layer in layer_idx:
-            neuron_activations = layers_activation[layer]
-            W = list_layer_weights[layer + 1]
-            delta = np.dot(delta_previous_layer, W) * self.unsupervised_dbn.rbm_layers[layer]._activation_function_class.prime(neuron_activations)
-            deltas.append(delta)
-            delta_previous_layer = delta
-        deltas.reverse()
-
-        layers_activation.pop()
-        layers_activation.insert(0, input_vector)
-        layer_gradient_weights, layer_gradient_bias = list(), list()
-        for layer in range(len(list_layer_weights)):
-            neuron_activations = layers_activation[layer]
-            delta = deltas[layer]
-            gradient_W = np.outer(delta, neuron_activations)
-            layer_gradient_weights.append(gradient_W)
-            layer_gradient_bias.append(delta)
-        return layer_gradient_weights, layer_gradient_bias, activation_output_layer
-
-    def _fine_tuning(self, data, _labels):
-        self.num_classes = self._determine_num_output_neurons(_labels)
-        n_hidden_units_previous_layer = self.unsupervised_dbn.rbm_layers[-1].n_hidden_units
-        self.W = np.random.randn(self.num_classes, n_hidden_units_previous_layer) / np.sqrt(
-            n_hidden_units_previous_layer)
-        self.b = np.random.randn(self.num_classes) / np.sqrt(n_hidden_units_previous_layer)
-        labels = self._transform_labels_to_network_format(_labels)
-
-        for rbm in self.unsupervised_dbn.rbm_layers:
-            rbm.W /= self.p
-            rbm.c /= self.p
-
-        if self.verbose:
-            print("[START] Fine tuning step:")
-        if self.unsupervised_dbn.optimization_algorithm == 'sgd':
-            self._stochastic_gradient_descent(data, labels)
-        else:
-            raise ValueError("Invalid optimization algorithm.")
-
-        for rbm in self.unsupervised_dbn.rbm_layers:
-            rbm.W *= self.p
-            rbm.c *= self.p
-
-        if self.verbose:
-            print("[END] Fine tuning step")
-
-    @abstractmethod
-    def _compute_loss(self, predicted, label):
-        return
-
-    @abstractmethod
-    def _compute_output_layer_delta(self, label, predicted):
-        return
-
-
-class SupervisedDBNClassification(NumPyAbstractSupervisedDBN, ClassifierMixin):
-    def _transform_labels_to_network_format(self, labels):
-        new_labels = np.zeros([len(labels), self.num_classes])
-        self.label_to_idx_map, self.idx_to_label_map = dict(), dict()
-        idx = 0
-        for i, label in enumerate(labels):
-            if label not in self.label_to_idx_map:
-                self.label_to_idx_map[label] = idx
-                self.idx_to_label_map[idx] = label
-                idx += 1
-            new_labels[i][self.label_to_idx_map[label]] = 1
-        return new_labels
-
-    def _transform_network_format_to_labels(self, indexes):
-        return list(map(lambda idx: self.idx_to_label_map[idx], indexes))
-
-    def _compute_output_units(self, vector_visiable_units):
-        v = vector_visiable_units
-        scores = np.dot(self.W, v) + self.b
-        exp_scores = np.exp(scores)
-        return exp_scores / np.sum(exp_scores)
-
-    def _compute_output_units_matrix(self, matrix_visible_units):
-        matrix_scores = np.transpose(np.dot(self.W, np.transpose(matrix_visible_units)) + self.b[:, np.newaxis])
-        exp_scores = np.exp(matrix_scores)
-        return exp_scores / np.expand_dims(np.sum(exp_scores, axis=1), 1)
-
-    def _compute_output_layer_delta(self, label, predicted):
-        dscores = np.append(predicted)
-        dscores[np.where(label == 1)] -= 1
-        return dscores
-
-    def predict_proda(self, X):
-        return super(SupervisedDBNClassification, self).predict(X)
-
-    def predict_proda_dict(self, X):
-        if len(X.shape) == 1:
-            X = np.expand_dims(X, 0)
-        predicted_probs = self.predict_proda(X)
-
-        result = []
-        num_of_data, num_of_labels = predicted_probs.shape
-        for i in range(num_of_data):
-            dict_prob = {}
-            for j in range(num_of_labels):
-                dict_prob[self.idx_to_label_map[j]] = predicted_probs[i][j]
-            result.append(dict_prob)
-        return result
-
-    def predict(self, X):
-        probs = self.predict_proda(X)
-        indexes = np.argmax(probs, axis=1)
-        return self._transform_network_format_to_labels(indexes)
-
-    def _determine_num_output_neurons(self, labels):
-        return len(np.unique(labels))
-
-    def _compute_loss(self, probs, label):
-        return -np.log(probs[np.where(label == 1)])
-
-class SupervisedDBNRegression(NumPyAbstractSupervisedDBN, RegressorMixin):
-    def _transform_labels_to_network_format(self, labels):
-        return labels
-
-    def _compute_output_units(self, vector_visible_units):
-        v = vector_visible_units
-        return np.dot(self.W, v) + self.b
-
-    def _compute_output_units_matrix(self, matrix_visible_units):
-        return np.transpose(np.dot(self.W, np.transpose(matrix_visible_units)) + self.b[:, np.newaxis])
-
-    def _compute_output_layer_delta(self, label, predicted):
-        return -(label - predicted)
-
-    def _determine_num_output_neurons(self, labels):
-        if len(labels.shape) == 1:
-            return 1
-        else:
-            return labels.shape[1]
-
-    def _compute_loss(self, predicted, label):
-        error = predicted - label
-        return error * error
 

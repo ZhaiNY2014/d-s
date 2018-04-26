@@ -16,7 +16,6 @@ class DBN(object):
     step3: 训练dbn
     step4: 载入bp网络
     step5: 返回5维的数据及其分类
-    
     """
     def __init__(self, dataset):
         self._input_data = dataset
@@ -26,26 +25,21 @@ class DBN(object):
         digits = self._input_data[0]
         X, Y = digits[0], digits[1]
 
-        # # Data scaling
-        # X = (X / 16).astype(np.float32)
-
-        # # Splitting data
-        # X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
-
         # Training
         classifier = SupervisedDBNClassification(hidden_layers_structure=[100, 80, 50, 25, 5],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=10,
+                                                 n_epochs_rbm=20,
                                                  n_iter_backprop=100,
-                                                 batch_size=32,
+                                                 batch_size=100,
                                                  activation_function='sigmoid',
                                                  dropout_p=0.2)
         classifier.fit(np.array(X))
 
         # Test
-        Y_pred = classifier.predict(self._input_data[0][0])
-        # print('Done.\nAccuracy: %f' % accuracy_score(Y_test, Y_pred))
+        Y_pred = classifier.predict(X[0])
+
+        classifier.save('/file/dataset_dbn')
 
 
 

@@ -9,7 +9,10 @@ from ..models import AbstractSupervisedDBN as BaseAbstractSupervisedDBN
 from ..models import BaseModel
 from ..models import BinaryRBM as BaseBinaryRBM
 from ..models import UnsupervisedDBN as BaseUnsupervisedDBN
-from ..utils import batch_generator, to_categorical
+from ..utils import batch_generator, to_categorical, save_weight_matrix
+
+import time
+import os
 
 
 def close_session():
@@ -17,6 +20,19 @@ def close_session():
 
 sess = tf.Session()
 atexit.register(close_session)
+
+tf.logging.set_verbosity(tf.logging.INFO)
+
+
+def save(saver, session, path='/save/model'):
+    file_name = '/model'
+    save_path = path + time.strftime('_%Y-%m-%d-%H-%M-%S', time.localtime(time.time())) + file_name
+    i = 1
+    while os.path.exists(save_path):
+        save_path = save_path.split('_')[0]+'_'+str(i)
+        i += 1
+    os.makedirs(save_path)
+    saver.save(session, save_path)
 
 
 def weight_variable(func, shape, stddev, dtype=tf.float32):
@@ -82,6 +98,7 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
 
         if self.optimization_algorithm == 'sgd':
             self._stochastic_gradient_descent(X)
+            # print(sess.run(self.W))
         else:
             raise ValueError("Invalid optimization algorithm.")
         return
@@ -181,8 +198,8 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
     def _stochastic_gradient_descent(self, _data):
         """
         执行随机梯度下降优化算法
-        :param _data: 
-        :return: 
+        :param _data:
+        :return:
         """
         for iteration in range(1, self.n_epochs + 1):
             idx = np.random.permutation(len(_data))
@@ -195,9 +212,18 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
                 sess.run(tf.variables_initializer(self.random_variables))  # Need to re-sample from uniform distribution
                 sess.run([self.update_W, self.update_b, self.update_c],
                          feed_dict={self.visible_units_placeholder: batch})
+
+            saver = tf.train.Saver()
+            # save(saver, sess)
+            saver.save(sess, "../../save/model")
             if self.verbose:
                 error = self._compute_reconstruction_error(data)
-                print(">> Epoch %d finished \tRBM Reconstruction error %f" % (iteration, error))
+                print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
+                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
+        self.W_list.append(self.W)
+        rbm_hidden_size = self.W.get_shape()._dims[0].value
+        rbm_visible_size = self.W.get_shape()._dims[1].value
+        save_weight_matrix(sess.run(self.W), rbm_visible_size, rbm_hidden_size)
 
     def _compute_hidden_units_matrix(self, matrix_visible_units):
         """
@@ -446,28 +472,4 @@ class SupervisedDBNClassification(TensorFlowAbstractSupervisedDBN, ClassifierMix
 
     def _determine_num_output_neurons(self, labels):
         return len(np.unique(labels))
-
-
-class SupervisedDBNRegression(TensorFlowAbstractSupervisedDBN, RegressorMixin):
-    def _build_model(self, weights=None):
-        super(SupervisedDBNRegression, self)._build_model(weights)
-        self.output = self.y
-        self.cost_function = tf.reduce_mean(tf.square(self.y_ - self.y))  # Mean Squared Error
-        self.train_step = self.optimizer.minimize(self.cost_function)
-
-    def _transform_labels_to_network_format(self, labels):
-        return labels
-
-    def _compute_output_units_matrix(self, matrix_visible_units):
-        return super(SupervisedDBNRegression, self)._compute_output_units_matrix(matrix_visible_units)
-
-    def _determine_num_output_neurons(self, labels):
-        if len(labels.shape) == 1:
-            return 1
-        else:
-            return labels.shape[1]
-
-
-
-
 

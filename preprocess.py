@@ -106,36 +106,32 @@ class Preprocess:
 
 def _normalize(X):
     _datas = X[0]
-    output = list()
+    _label = X[1]
+    data_output = list()
+    label_output = list()
     data_a = np.array(_datas)
-    _max = np.amax(data_a, 0).tolist()
-    _min = np.amin(data_a, 0).tolist()
+    _data_max = np.amax(data_a, 0).tolist()
+    _data_min = np.amin(data_a, 0).tolist()
+    _label_max = np.amax(np.array(_label), 0)
+    _label_min = np.amin(np.array(_label), 0)
     for data in _datas:
         outrow = _init_output_list()
         for i in range(len(data)):
-            if _max[i] - _min[i] != 0.:
-                value = (data[i] - _min[i]) / (_max[i] - _min[i])
+            if _data_max[i] - _data_min[i] != 0.:
+                value = (data[i] - _data_min[i]) / (_data_max[i] - _data_min[i])
             else:
-                value = 0. if _max[i] == 0.0 else 1.
+                value = 0. if _data_max[i] == 0.0 else 1.
             outrow[i] = value
-        output.append(outrow)
+        data_output.append(outrow)
+    for label in _label:
+        outrow = float(-1)
+        if _label_max - _label_min != 0:
+            outrow = float(label - _label_min) / float(_label_max - _label_min)
+        else:
+            outrow = 0. if _label_max == 0 else 1.
+        label_output.append(outrow)
 
-    return output, X[1]
-
-    # def _normalize_str2num(self, datas):
-    #     # print("str to num")
-    #     fdatas = []
-    #     for data in datas:
-    #         for i in range(len(data)):
-    #             value = data[i]
-    #             if isinstance(value, str):
-    #                 data[i] = float(value)
-    #             if self.attr_max_list[i] < data[i]:
-    #                 self.attr_max_list[i] = data[i]
-    #             if self.attr_min_list[i] > data[i]:
-    #                 self.attr_min_list[i] = data[i]
-    #         fdatas.append(data)
-    #     return fdatas
+    return data_output, label_output
 
 
 def _init_output_list():
