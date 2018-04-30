@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from sklearn.datasets import load_digits
-from sklearn.model_selection import train_test_split
-from sklearn.metrics.classification import accuracy_score
-from dbn.tensorflow import SupervisedDBNClassification
-from dbn import BinaryRBM
-np.random.seed(1337)  # for reproducibility
+import dbn.tensorflow.models as dbn_model
+import dbn.utils as utils
 
 
 class DBN(object):
@@ -26,7 +22,7 @@ class DBN(object):
         X, Y = digits[0], digits[1]
 
         # Training
-        classifier = SupervisedDBNClassification(hidden_layers_structure=[100, 80, 50, 25, 5],
+        classifier = dbn_model.SupervisedDBNClassification(hidden_layers_structure=[100, 80, 50, 25, 5],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
                                                  n_epochs_rbm=20,
@@ -39,7 +35,11 @@ class DBN(object):
         # Test
         Y_pred = classifier.predict(X[0])
 
-        classifier.save('/file/dataset_dbn')
+    def do_dbn_with_weight_matrix(self, path):
+        dbn_model.compute_low_dimensions_data_matrix(
+            utils.load_weight_matrix(path), self._input_data)
+
+
 
 
 

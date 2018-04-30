@@ -3,7 +3,6 @@ from abc import ABCMeta
 
 import numpy as np
 import tensorflow as tf
-from sklearn.base import ClassifierMixin, RegressorMixin
 
 from ..models import AbstractSupervisedDBN as BaseAbstractSupervisedDBN
 from ..models import BaseModel
@@ -22,6 +21,22 @@ sess = tf.Session()
 atexit.register(close_session)
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
+
+def compute_low_dimensions_data_matrix(weight, datas):
+    _datas = datas
+    weight_matrix = np.matmul(
+        np.matmul(
+            np.matmul(
+                np.matmul(np.transpose(weight[0]), np.transpose(weight[1])
+                          ), np.transpose(weight[2])
+            ), np.transpose(weight[3])
+        ), np.transpose(weight[4])
+    )
+    output_train_data = np.matmul(_datas[0][0], weight_matrix)
+    output_test_data = np.matmul(_datas[1][0], weight_matrix)
+
+    return (output_train_data, _datas[0][1]), (output_test_data, _datas[0][1])
 
 
 def save(saver, session, path='/save/model'):
@@ -415,7 +430,7 @@ class TensorFlowAbstractSupervisedDBN(BaseAbstractSupervisedDBN, BaseTensorFlowM
         return sess.run(self.output, feed_dict=feed_dict)
 
 
-class SupervisedDBNClassification(TensorFlowAbstractSupervisedDBN, ClassifierMixin):
+class SupervisedDBNClassification(TensorFlowAbstractSupervisedDBN):
     def _build_model(self, weights=None):
         super(SupervisedDBNClassification, self)._build_model(weights)
         self.output = tf.nn.softmax(self.y)

@@ -1,5 +1,4 @@
 import numpy as np
-import time
 import os
 
 
@@ -37,7 +36,7 @@ def save_weight_matrix(W, rbm_visible_size, rbm_hidden_size):
     for _line in _W:
         line = list2str(_line)
         matrix4write.append(line)
-    package_path = "D:/PycharmProjects/DBN-SVM/save/weight_matrix_" + time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime(time.time()))
+    package_path = "D:/PycharmProjects/DBN-SVM/save/weight_matrix"
     if not os.path.exists(package_path):
         os.makedirs(package_path)
     file_path = '/' + str(rbm_visible_size) + 'to' + str(rbm_hidden_size) + '.txt'
@@ -60,3 +59,64 @@ def list2str(_list):
     line += '\n'
 
     return line
+
+
+def load_weight_matrix(path):
+    weight_array_list = list()
+
+    with open(path + "/122to100.txt") as rbm_weight_0:
+        list_122to100 = list()
+        for _line in rbm_weight_0.readlines():
+            line = list()
+            for _value in _line.strip().split(' '):
+                value = float(_value.strip())
+                line.append(value)
+            list_122to100.append(line)
+        array_0 = np.array(list_122to100)
+        weight_array_list.append(array_0)
+
+    with open(path + "/100to80.txt") as rbm_weight_1:
+        list_100to80 = list()
+        for _line in rbm_weight_1.readlines():
+            line = list()
+            for _value in _line.strip().split(' '):
+                value = float(_value.strip())
+                line.append(value)
+            list_100to80.append(line)
+        array_1 = np.array(list_100to80)
+        weight_array_list.append(array_1)
+
+    with open(path + "/80to50.txt") as rbm_weight_2:
+        list_80to50 = list()
+        for _line in rbm_weight_2.readlines():
+            line = list()
+            for _value in _line.strip().split(' '):
+                value = float(_value.strip())
+                line.append(value)
+            list_80to50.append(line)
+        array_2 = np.array(list_80to50)
+        weight_array_list.append(array_2)
+
+    with open(path + "/50to25.txt") as rbm_weight_3:
+        list_50to25 = list()
+        for _line in rbm_weight_3.readlines():
+            line = list()
+            for _value in _line.strip().split(' '):
+                value = float(_value.strip())
+                line.append(value)
+            list_50to25.append(line)
+        array_3 = np.array(list_50to25)
+        weight_array_list.append(array_3)
+
+    with open(path + "/25to5.txt") as rbm_weight_4:
+        list_25to5 = list()
+        for _line in rbm_weight_4.readlines():
+            line = list()
+            for _value in _line.strip().split(' '):
+                value = float(_value.strip())
+                line.append(value)
+            list_25to5.append(line)
+        array_4 = np.array(list_25to5)
+        weight_array_list.append(array_4)
+
+    return weight_array_list
