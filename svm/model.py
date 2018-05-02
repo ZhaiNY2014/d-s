@@ -5,31 +5,38 @@ import tensorflow as tf
 import numpy as np
 from sklearn import datasets
 from libsvm.python.svmutil import *
+import os
 
 
-class SVM:
-    def __init__(self):
-        self._train_label, self._train_value = svm_read_problem('/file/data_dbn_train.txt')
-        self._test_label, self._test_value = svm_read_problem('/file/data_dbn_test.txt')
+# class SVM:
+#     def __init__(self):
+#
+#
+#     def train(self):
+#
+#         return model
+#
+#     def predict(self, model):
+#         p_label, p_acc, p_val = svm_predict(self._test_label, self._test_value, model)
+#         return p_acc
 
-    def train(self):
-        model = svm_train(self._train_label, self._train_value)
-        return model
+test_dir=os.path.dirname(__file__)
+root_dir=os.path.join(test_dir, '..')
+root = root_dir[0:root_dir.index('DBN-SVM')+7]
 
-    def predict(self, model):
-        p_label, p_acc, p_val = svm_predict(self._test_label, self._test_value, model)
-        return p_acc
 
-    def do_svm(self):
-        acc = SVM.predict(SVM.train(self))
-        save(acc)
-        print(acc)
+def do_svm():
+    _train_label, _train_value = svm_read_problem(root + '/file/data_dbn_train.txt')
+    _test_label, _test_value = svm_read_problem(root + '/file/data_dbn_test.txt')
+    model = svm_train(_train_label, _train_value)
+    p_label, p_acc, p_val = svm_predict(_test_label, _test_value, model)
+    save(p_acc)
+    print(p_acc)
 
 
 def save(acc):
-    with open("/file/data_svm.txt") as file:
-        for line in acc:
-            file.write(line)
+    with open(root + "/file/data_svm.txt", 'w') as file:
+        file.write(str(acc[0]))
 
 
 def doSVM():

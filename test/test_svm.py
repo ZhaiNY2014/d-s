@@ -1,5 +1,5 @@
 from svm import model as svm
 
-svm.doSVM()
+# svm.doSVM()
 
-# svm.SVM.do_svm()
+svm.do_svm()

@@ -1,9 +1,13 @@
 import ReadFile
 import preprocess
 import dbn_model
+import os
 
-read = ReadFile.ReadFile("D:\\PycharmProjects\\DBN-SVM\\NSL_KDD-master").get_data()
-data_pp = preprocess.Preprocess(read).do_preprocess()
-do_dbn = dbn_model.DBN(data_pp).do_dbn_with_weight_matrix("D:/PycharmProjects/DBN-SVM/save/weight_matrix")
+path_cur = os.path.abspath('.')
+path_pre = os.path.abspath('..')
+
+read = ReadFile.ReadFile(path_pre + "/NSL_KDD-master").get_data()
+data_pp = preprocess.Preprocess(read).do_predict_preprocess()
+do_dbn = dbn_model.DBN(data_pp).do_dbn_with_weight_matrix(path_pre + "/save/weight_matrix")
 
 print("[end]test_dbn")

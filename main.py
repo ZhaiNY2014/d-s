@@ -6,11 +6,13 @@ import preprocess
 import dbn_model
 import saveResult
 from svm import model
+import os
 
 if __name__ == "__main__":
-    file_data = ReadFile.ReadFile("D:\\PycharmProjects\\DBN-SVM\\NSL_KDD-master").get_data()
-    data_pp = preprocess.Preprocess(file_data).do_preprocess()
-    data_dbn = dbn_model.DBN(data_pp).do_dbn()
-    do_svm = model.SVM(train_data=data_dbn[0], test_data=data_dbn[1])
-    data = do_svm.doSVM()
-    do_save = saveResult.save(data)
+    path_cur = os.path.abspath('.')
+    path_pre = os.path.abspath('..')
+    file_data = ReadFile.ReadFile(path_cur + '/NSL_KDD-master').get_data()
+    data_pp = preprocess.Preprocess(file_data).do_predict_preprocess()
+    dbn_model.DBN(data_pp).do_dbn()
+    dbn_model.DBN(data_pp).do_dbn_with_weight_matrix(path_cur + '/save/weight_matrix')
+    do_svm = model.SVM().do_svm()

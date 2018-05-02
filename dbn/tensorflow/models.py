@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import atexit
 from abc import ABCMeta
 
@@ -12,15 +15,29 @@ from ..utils import batch_generator, to_categorical, save_weight_matrix
 
 import time
 import os
+import logging
 
 
 def close_session():
     sess.close()
 
+
+test_dir=os.path.dirname(__file__)
+root_dir=os.path.join(test_dir, '..')
+root = root_dir[0:root_dir.index('DBN-SVM')+7]
+
 sess = tf.Session()
 atexit.register(close_session)
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.INFO)
+log_time = time.strftime('%Y_%m_%d', time.localtime(time.time()))
+handler = logging.FileHandler(root + "/log/std_log_" + log_time + '.txt')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
 
 
 def compute_low_dimensions_data_matrix(weight, datas):
@@ -36,18 +53,37 @@ def compute_low_dimensions_data_matrix(weight, datas):
     output_train_data = np.matmul(_datas[0][0], weight_matrix)
     output_test_data = np.matmul(_datas[1][0], weight_matrix)
 
-    return (output_train_data, _datas[0][1]), (output_test_data, _datas[0][1])
+    save_dbn_weight_as_svm((output_train_data, _datas[0][1]), 'train')
+    save_dbn_weight_as_svm((output_test_data, _datas[1][1]), 'test')
 
 
-def save(saver, session, path='/save/model'):
-    file_name = '/model'
-    save_path = path + time.strftime('_%Y-%m-%d-%H-%M-%S', time.localtime(time.time())) + file_name
-    i = 1
-    while os.path.exists(save_path):
-        save_path = save_path.split('_')[0]+'_'+str(i)
-        i += 1
-    os.makedirs(save_path)
-    saver.save(session, save_path)
+def save_dbn_weight_as_svm(data_set, t):
+    if t == 'train':
+        with open(root + '/file/data_dbn_train.txt', 'w') as train_data_file:
+            for i1 in range(len(data_set[0])):
+                train_label = data_set[1][i1]  # float
+                train_data = data_set[0][i1].tolist()  # 5维list
+                s1 = str(train_label) + ' '
+                for j1 in range(len(train_data)):
+                    s1 += str(j1)
+                    s1 += ':'
+                    s1 += str(train_data[j1]).strip()
+                    s1 += ' '
+                s1 += '\n'
+                train_data_file.write(s1)
+    if t == 'test':
+        with open(root + '/file/data_dbn_test.txt', 'w') as test_data_file:
+            for i2 in range(len(data_set[0])):
+                test_label = data_set[1][i2]  # float
+                test_data = data_set[0][i2].tolist()  # 5维list
+                s2 = str(test_label) + ' '
+                for j2 in range(len(test_data)):
+                    s2 += str(j2)
+                    s2 += ':'
+                    s2 += str(test_data[j2]).strip()
+                    s2 += ' '
+                s2 += '\n'
+                test_data_file.write(s2)
 
 
 def weight_variable(func, shape, stddev, dtype=tf.float32):
@@ -228,14 +264,16 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
                 sess.run([self.update_W, self.update_b, self.update_c],
                          feed_dict={self.visible_units_placeholder: batch})
 
-            saver = tf.train.Saver()
-            # save(saver, sess)
-            saver.save(sess, "../../save/model")
+            # saver = tf.train.Saver()
+            # # save(saver, sess)
+            # saver.save(sess, "../../save/model")
             if self.verbose:
                 error = self._compute_reconstruction_error(data)
                 print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
                       (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
-        self.W_list.append(self.W)
+                logger.warning(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
+                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
+        self.W_list.append(sess.run(self.W))
         rbm_hidden_size = self.W.get_shape()._dims[0].value
         rbm_visible_size = self.W.get_shape()._dims[1].value
         save_weight_matrix(sess.run(self.W), rbm_visible_size, rbm_hidden_size)

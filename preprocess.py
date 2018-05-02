@@ -36,13 +36,18 @@ class Preprocess:
      dst_host_rerror_rate, dst_host_srv_rerror_rate]
      targit is a list mapping 4 types attack_type 
     """
-    def __init__(self, data):
-        self._train_data = data[1]
-        self._test_data = data[2]
-        self._attr_name = data[0]
-        self._attack_type = data[3]
+    def __init__(self, data, type='dbn'):
+        if type == 'dbn':
+            self._train_data = data[1]
+            self._test_data = data[2]
+            self._attr_name = data[0]
+            self._attack_type = data[3]
+        elif type == 'svm':
+            self._train = data[0]
+            self._test = data[1]
+        self.type = type
 
-    def do_preprocess(self):
+    def do_predict_preprocess(self):
         self._init_dict()
         # a tuple(train_data,train_targit), label #0 is data and #1 is targit
         train_pp = self._preprocess_data(self._train_data)
@@ -53,6 +58,11 @@ class Preprocess:
 
         return_dataset = (train_n, test_n)
         return return_dataset
+
+    def do_svm_preprocess(self):
+        train_n = _normalize(self._train)
+        test_n = _normalize(self._test)
+        return train_n, test_n
 
     def _init_dict(self):
         self.dict = {}

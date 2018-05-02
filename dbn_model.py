@@ -25,7 +25,7 @@ class DBN(object):
         classifier = dbn_model.SupervisedDBNClassification(hidden_layers_structure=[100, 80, 50, 25, 5],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=20,
+                                                 n_epochs_rbm=150,
                                                  n_iter_backprop=100,
                                                  batch_size=100,
                                                  activation_function='sigmoid',
