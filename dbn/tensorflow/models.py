@@ -22,9 +22,10 @@ def close_session():
     sess.close()
 
 
-test_dir=os.path.dirname(__file__)
-root_dir=os.path.join(test_dir, '..')
+test_dir = os.path.dirname(__file__)
+root_dir = os.path.join(test_dir, '..')
 root = root_dir[0:root_dir.index('d-s')+3]
+# root = root_dir[0:root_dir.index('DBN-SVM')+7]
 
 sess = tf.Session()
 atexit.register(close_session)
@@ -253,8 +254,8 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
         :return:
         """
 
-        g_log = open(root + "/log/std_log_" + log_time + '.txt', 'w+')
-        g_log.write('rbm start, ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + '\n')
+        with open(root + "/log/std_log_" + log_time + '.txt', 'a') as f_log:
+            f_log.write('rbm start, ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + '\n')
 
         for iteration in range(1, self.n_epochs + 1):
             idx = np.random.permutation(len(_data))
@@ -274,11 +275,13 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
             if self.verbose:
                 error = self._compute_reconstruction_error(data)
                 print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
-                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))), g_log)
+                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
+                with open(root + "/log/std_log_" + log_time + '.txt', 'a') as f_log:
+                    print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
+                          (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))), file=f_log)
         self.W_list.append(sess.run(self.W))
         rbm_hidden_size = self.W.get_shape()._dims[0].value
         rbm_visible_size = self.W.get_shape()._dims[1].value
-        g_log.close()
         save_weight_matrix(sess.run(self.W), rbm_visible_size, rbm_hidden_size)
 
     def _compute_hidden_units_matrix(self, matrix_visible_units):

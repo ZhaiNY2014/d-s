@@ -6,23 +6,13 @@ import numpy as np
 from sklearn import datasets
 from libsvm.python.svmutil import *
 import os
+import time
 
 
-# class SVM:
-#     def __init__(self):
-#
-#
-#     def train(self):
-#
-#         return model
-#
-#     def predict(self, model):
-#         p_label, p_acc, p_val = svm_predict(self._test_label, self._test_value, model)
-#         return p_acc
-
-test_dir=os.path.dirname(__file__)
-root_dir=os.path.join(test_dir, '..')
+test_dir = os.path.dirname(__file__)
+root_dir = os.path.join(test_dir, '..')
 root = root_dir[0:root_dir.index('d-s')+3]
+# root = root_dir[0:root_dir.index('DBN-SVM')+7]
 
 
 def do_svm():
@@ -35,8 +25,8 @@ def do_svm():
 
 
 def save(acc):
-    with open(root + "/file/data_svm.txt", 'w') as file:
-        file.write(str(acc[0]))
+    with open(root + "/file/data_svm.txt", 'a') as file:
+        file.write('acc = ' + str(acc[0]) + ',' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + '\n')
 
 
 def doSVM():
