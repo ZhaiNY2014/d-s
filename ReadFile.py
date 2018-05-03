@@ -17,7 +17,7 @@ class ReadFile(object):
         attr_name = []
         attack_type = {}
 
-        with open(pakage_path + '/20 Percent Training Set.csv') as train_file:
+        with open(pakage_path + '/KDDTrain+.csv') as train_file:
             for line in train_file.readlines():
                 train_data.append(line.strip().split(','))
 

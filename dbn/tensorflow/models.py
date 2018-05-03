@@ -31,13 +31,13 @@ atexit.register(close_session)
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+# logger.setLevel(level=logging.INFO)
 log_time = time.strftime('%Y_%m_%d', time.localtime(time.time()))
-handler = logging.FileHandler(root + "/log/std_log_" + log_time + '.txt')
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
+# handler = logging.FileHandler(root + "/log/std_log_" + log_time + '.txt')
+# handler.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
 
 
 def compute_low_dimensions_data_matrix(weight, datas):
@@ -252,6 +252,10 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
         :param _data:
         :return:
         """
+
+        g_log = open(root + "/log/std_log_" + log_time + '.txt', 'w+')
+        g_log.write('rbm start, ' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + '\n')
+
         for iteration in range(1, self.n_epochs + 1):
             idx = np.random.permutation(len(_data))
             data = _data[idx]
@@ -270,12 +274,11 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
             if self.verbose:
                 error = self._compute_reconstruction_error(data)
                 print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
-                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
-                logger.warning(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
-                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))))
+                      (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))), g_log)
         self.W_list.append(sess.run(self.W))
         rbm_hidden_size = self.W.get_shape()._dims[0].value
         rbm_visible_size = self.W.get_shape()._dims[1].value
+        g_log.close()
         save_weight_matrix(sess.run(self.W), rbm_visible_size, rbm_hidden_size)
 
     def _compute_hidden_units_matrix(self, matrix_visible_units):
