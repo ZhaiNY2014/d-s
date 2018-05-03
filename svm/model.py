@@ -22,7 +22,7 @@ import os
 
 test_dir=os.path.dirname(__file__)
 root_dir=os.path.join(test_dir, '..')
-root = root_dir[0:root_dir.index('DBN-SVM')+7]
+root = root_dir[0:root_dir.index('d-s')+3]
 
 
 def do_svm():
