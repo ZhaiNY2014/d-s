@@ -23,11 +23,11 @@ class DBN(object):
 
         # Training
         classifier = dbn_model.SupervisedDBNClassification(hidden_layers_structure=[100, 80, 50, 25, 5],
-                                                 learning_rate_rbm=0.05,
+                                                 learning_rate_rbm=0.1,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=150,
+                                                 n_epochs_rbm=100,
                                                  n_iter_backprop=100,
-                                                 batch_size=100,
+                                                 batch_size=1000,
                                                  activation_function='sigmoid',
                                                  dropout_p=0.2)
         classifier.fit(np.array(X))
