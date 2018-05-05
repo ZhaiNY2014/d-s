@@ -260,7 +260,12 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
         for iteration in range(1, self.n_epochs + 1):
             idx = np.random.permutation(len(_data))
             data = _data[idx]
-            for batch in batch_generator(self.batch_size, data):
+            dataset = tf.data.Dataset.from_tensor_slices(data).shuffle(10000).batch(self.batch_size)
+            dataset_iter = dataset.make_one_shot_iterator()
+            dataset_iter_next = dataset_iter.get_next()
+
+            for i in range(int(np.ceil(len(data) / float(self.batch_size)))):
+                batch = sess.run(dataset_iter_next)
                 if len(batch) < self.batch_size:
                     # Pad with zeros
                     pad = np.zeros((self.batch_size - batch.shape[0], batch.shape[1]), dtype=batch.dtype)
@@ -279,7 +284,7 @@ class BinaryRBM(BaseBinaryRBM, BaseTensorFlowModel):
                 with open(root + "/log/std_log_" + log_time + '.txt', 'a') as f_log:
                     print(">> Epoch %d finished \tRBM Reconstruction error %f , %s" %
                           (iteration, error, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))), file=f_log)
-        self.W_list.append(sess.run(self.W))
+        # self.W_list.append(sess.run(self.W))
         rbm_hidden_size = self.W.get_shape()._dims[0].value
         rbm_visible_size = self.W.get_shape()._dims[1].value
         save_weight_matrix(sess.run(self.W), rbm_visible_size, rbm_hidden_size)

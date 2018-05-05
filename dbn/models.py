@@ -46,7 +46,7 @@ class BinaryRBM(BaseEstimator, TransformerMixin, BaseModel):
         self.contrastive_divergence_iter = contrastive_divergence_iter
         self.batch_size = batch_size
         self.verbose = verbose
-        self.W_list = list()
+        # self.W_list = list()
 
     def fit(self, X):
         self.n_visible_units = X.shape[1]

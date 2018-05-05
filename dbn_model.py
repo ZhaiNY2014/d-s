@@ -27,7 +27,7 @@ class DBN(object):
                                                  learning_rate=0.1,
                                                  n_epochs_rbm=100,
                                                  n_iter_backprop=100,
-                                                 batch_size=1000,
+                                                 batch_size=1280,
                                                  activation_function='sigmoid',
                                                  dropout_p=0.2)
         classifier.fit(np.array(X))
