@@ -7,11 +7,8 @@ import tensorflow as tf
 import os
 
 from yadlt.models.boltzmann import dbn
-from yadlt.utils import datasets, utilities
-from yadlt.core.config import Config
+from yadlt.utils import utilities
 
-test_dir = os.path.dirname(__file__)
-root_dir = os.path.join(test_dir, '..')
 
 class DBN(object):
     """
