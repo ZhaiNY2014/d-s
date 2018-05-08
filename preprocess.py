@@ -95,7 +95,7 @@ class Preprocess:
             targit.append(_targit)
         # 处理data
         for data in datas:
-            data_expend = _init_output_list()
+            data_expend = _init_output_list(122)
             for i in range(len(data)):
                 if i == 1 or i == 2 or i == 3:  # 字符型需映射
                     for j in range(self.dict[i], self.dict[i+1]):
@@ -124,7 +124,7 @@ def _normalize(X):
     _label_max = np.amax(np.array(_label), 0)
     _label_min = np.amin(np.array(_label), 0)
     for data in _datas:
-        outrow = _init_output_list()
+        outrow = _init_output_list(data_a.shape[1])
         for i in range(len(data)):
             if _data_max[i] - _data_min[i] != 0.:
                 value = (data[i] - _data_min[i]) / (_data_max[i] - _data_min[i])
@@ -143,8 +143,8 @@ def _normalize(X):
     return data_output, label_output
 
 
-def _init_output_list():
+def _init_output_list(len):
     output = []
-    for i in range(122):
+    for i in range(len):
         output.append(0.0)
     return output
