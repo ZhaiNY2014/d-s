@@ -12,20 +12,17 @@ from ..models import BaseModel
 from ..models import BinaryRBM as BaseBinaryRBM
 from ..models import UnsupervisedDBN as BaseUnsupervisedDBN
 from ..utils import batch_generator, to_categorical, save_weight_matrix
+import preprocess
 
 import time
-import os
-import logging
+import utils
 
 
 def close_session():
     sess.close()
 
 
-test_dir = os.path.dirname(__file__)
-root_dir = os.path.join(test_dir, '..')
-root = root_dir[0:root_dir.index('d-s')+3]
-# root = root_dir[0:root_dir.index('DBN-SVM')+7]
+root = utils.get_root_path(False)
 
 sess = tf.Session()
 atexit.register(close_session)
@@ -40,16 +37,19 @@ def compute_low_dimensions_data_matrix(weight, datas):
     weight_matrix = np.matmul(
         np.matmul(
             np.matmul(
-                np.matmul(np.transpose(weight[0]), np.transpose(weight[1])
-                          ), np.transpose(weight[2])
-            ), np.transpose(weight[3])
-        ), np.transpose(weight[4])
+                np.matmul(weight[0], weight[1]
+                          ), weight[2]
+            ), weight[3]
+        ), weight[4]
     )
     output_train_data = np.matmul(_datas[0][0], weight_matrix)
     output_test_data = np.matmul(_datas[1][0], weight_matrix)
 
-    save_dbn_weight_as_svm((output_train_data, _datas[0][1]), 'train')
-    save_dbn_weight_as_svm((output_test_data, _datas[1][1]), 'test')
+    datas = preprocess.Preprocess(
+        ((output_train_data, _datas[0][1]), (output_test_data, _datas[1][1])), type='svm').do_svm_preprocess()
+
+    save_dbn_weight_as_svm(datas[0], 'train')
+    save_dbn_weight_as_svm(datas[1], 'test')
 
 
 def save_dbn_weight_as_svm(data_set, t):
@@ -57,7 +57,7 @@ def save_dbn_weight_as_svm(data_set, t):
         with open(root + '/file/data_dbn_train.txt', 'w') as train_data_file:
             for i1 in range(len(data_set[0])):
                 train_label = data_set[1][i1]  # float
-                train_data = data_set[0][i1].tolist()  # 5维list
+                train_data = data_set[0][i1]  # 5维list
                 s1 = str(train_label) + ' '
                 for j1 in range(len(train_data)):
                     s1 += str(j1)
@@ -70,7 +70,7 @@ def save_dbn_weight_as_svm(data_set, t):
         with open(root + '/file/data_dbn_test.txt', 'w') as test_data_file:
             for i2 in range(len(data_set[0])):
                 test_label = data_set[1][i2]  # float
-                test_data = data_set[0][i2].tolist()  # 5维list
+                test_data = data_set[0][i2]  # 5维list
                 s2 = str(test_label) + ' '
                 for j2 in range(len(test_data)):
                     s2 += str(j2)

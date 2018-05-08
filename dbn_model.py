@@ -3,20 +3,12 @@
 import numpy as np
 import dbn.tensorflow.models as dbn_model
 import dbn.utils as utils
-import tensorflow as tf
 
 from yadlt.models.boltzmann import dbn
 from yadlt.utils import utilities
 
 
 class DBN(object):
-    """
-    step1: 数据和分类分离
-    step2: 初始化dbn模块
-    step3: 训练dbn
-    step4: 载入bp网络
-    step5: 返回5维的数据及其分类
-    """
     def __init__(self, dataset):
         self._input_data = dataset
 
@@ -41,8 +33,6 @@ class DBN(object):
             Y_pred = classifier.predict(X[0])
 
         elif action == 'yadlt':
-            flags = tf.app.flags
-            FLAGS = flags.FLAGS
 
             trX, trY = np.array(self._input_data[0][0]), trans_label_to_yadlt(self._input_data[0][1])
             vlX, vlY = np.array(self._input_data[1][0][:10000]), trans_label_to_yadlt(self._input_data[1][1][:10000])

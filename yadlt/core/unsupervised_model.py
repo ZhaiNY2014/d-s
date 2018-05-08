@@ -9,12 +9,9 @@ from yadlt.core.model import Model
 from yadlt.utils import tf_utils
 
 import numpy as np
-import os
+import utils
 
-test_dir = os.path.dirname(__file__)
-root_dir = os.path.join(test_dir, '..')
-root = root_dir[0:root_dir.index('d-s')+3] + '/'
-# root = root_dir[0:root_dir.index('DBN-SVM')+7] + '/'
+root = utils.get_root_path()
 
 
 class UnsupervisedModel(Model):
@@ -75,7 +72,7 @@ class UnsupervisedModel(Model):
                 # Save model
                 weight = self.tf_session.run(self.W)
 
-                np.savetxt(root + '/save/' + str(weight.shape[0]) + 'to' + str(weight.shape[1] + '.txt'), weight)
+                np.savetxt(root + '/save/' + str(weight.shape[0]) + 'to' + str(weight.shape[1]) + '.txt', weight)
                 self.tf_saver.save(self.tf_session, self.model_path)
 
     def transform(self, data, graph=None):
