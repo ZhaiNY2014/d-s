@@ -13,6 +13,7 @@ def do_svm():
     _train_label, _train_value = svm_read_problem(root + '/file/data_dbn_train.txt')
     _test_label, _test_value = svm_read_problem(root + '/file/data_dbn_test.txt')
     model = svm_train(_train_label, _train_value, '-s 0 -t 2')
+    svm_save_model(root + '/save/svm_model' + time.strftime('%Y_%m_%d-%H_%M_%S', time.localtime(time.time())), model)
     p_label, p_acc, p_val = svm_predict(_test_label, _test_value, model)
     save(p_acc)
     print(p_acc)
