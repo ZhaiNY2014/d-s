@@ -4,7 +4,6 @@ import numpy as np
 import dbn.tensorflow.models as dbn_model
 import dbn.utils as utils
 import tensorflow as tf
-import os
 
 from yadlt.models.boltzmann import dbn
 from yadlt.utils import utilities
@@ -74,12 +73,12 @@ class DBN(object):
                 if which_set == 'train':
                     trout = srbm.get_layers_output(trX)
                     for i, o in enumerate(trout):
-                        np.save('train' + '-layer-' + str(i + 1) + '-train', o)
+                        np.save('/save/train' + '-layer-' + str(i + 1) + '-train', o)
 
                 elif which_set == 'test':
                     teout = srbm.get_layers_output(teX)
                     for i, o in enumerate(teout):
-                        np.save('test' + '-layer-' + str(i + 1) + '-test', o)
+                        np.save('/save/test' + '-layer-' + str(i + 1) + '-test', o)
                         # Save output from each layer of the model
             if True:
                 print('Saving the output of each layer for the test set')

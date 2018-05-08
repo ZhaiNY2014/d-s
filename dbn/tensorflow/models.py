@@ -32,13 +32,7 @@ atexit.register(close_session)
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-# logger = logging.getLogger(__name__)
-# logger.setLevel(level=logging.INFO)
 log_time = time.strftime('%Y_%m_%d', time.localtime(time.time()))
-# handler = logging.FileHandler(root + "/log/std_log_" + log_time + '.txt')
-# handler.setLevel(logging.INFO)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
 
 
 def compute_low_dimensions_data_matrix(weight, datas):
