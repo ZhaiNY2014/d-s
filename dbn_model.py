@@ -12,7 +12,7 @@ class DBN(object):
     def __init__(self, dataset):
         self._input_data = dataset
 
-    def do_dbn(self, action='pp'):
+    def do_dbn(self, action='pp', opts=None):
         if action == 'pp':
             # Loading dataset
             digits = self._input_data[0]
@@ -43,10 +43,13 @@ class DBN(object):
             srbm = dbn.DeepBeliefNetwork(
                 name='dbn', do_pretrain=True,
                 rbm_layers=[100, 80, 50, 25, 5],
-                finetune_act_func=finetune_act_func, rbm_learning_rate=[0.1],
-                rbm_num_epochs=[100], rbm_gibbs_k=[1],
+                finetune_act_func=finetune_act_func,
+                rbm_learning_rate=[float(opts.learning_rate_rbm)] if opts.learning_rate_rbm is not None else [0.1],
+                rbm_num_epochs=[int(opts.epochs_rbm)] if opts.epochs_rbm is not None else [100],
+                rbm_gibbs_k=[1],
                 rbm_gauss_visible=False, rbm_stddev=0.1,
-                momentum=0.9, rbm_batch_size=[64],
+                momentum=0.9,
+                rbm_batch_size=[int(opts.batch_size)] if opts.batch_size is not None else [64],
                 finetune_learning_rate=0.01,
                 finetune_num_epochs=10, finetune_batch_size=64,
                 finetune_opt='momentum', finetune_loss_func='softmax_cross_entropy',
