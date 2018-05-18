@@ -3,7 +3,7 @@
 
 
 class ReadFile(object):
-    def __init__(self, pakage_path):
+    def __init__(self, pakage_path, opts):
         """
         return_list[
             attr_name[],
@@ -17,7 +17,14 @@ class ReadFile(object):
         attr_name = []
         attack_type = {}
 
-        with open(pakage_path + '/KDDTrain+.csv') as train_file:
+        data_set_path = '/KDDTrain+.csv'
+        if opts is not None and opts.data_set is not None:
+            if opts.data_set == 'fullset':
+                data_set_path = '/KDDTrain+.csv'
+            elif opts.data_set == '20set':
+                data_set_path = '20 Percent Training Set.csv'
+
+        with open(pakage_path + data_set_path) as train_file:
             for line in train_file.readlines():
                 train_data.append(line.strip().split(','))
 

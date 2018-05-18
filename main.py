@@ -16,10 +16,11 @@ def main():
     parser.add_option('--learning_rate_rbm', action='store', type='string', dest='learning_rate_rbm')
     parser.add_option('--epochs_rbm', action='store', type='string', dest='epochs_rbm')
     parser.add_option('--batch_size', action='store', type='string', dest='batch_size')
+    parser.add_option('--data_set', action='store', type='string', dest='data_set')
 
     (opts, args) = parser.parse_args()
 
-    file_data = ReadFile.ReadFile(root + '/NSL_KDD-master').get_data()
+    file_data = ReadFile.ReadFile(root + '/NSL_KDD-master', opts=opts).get_data()
     data_pp = preprocess.Preprocess(file_data).do_predict_preprocess()
     dbn_model.DBN(data_pp).do_dbn('yadlt', opts=opts)
     dbn_model.DBN(data_pp).do_dbn_with_weight_matrix(root + '/save')

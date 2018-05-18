@@ -115,14 +115,14 @@ class Preprocess:
 
 def _normalize(X):
     _datas = X[0]
-    _label = X[1]
+    # _label = X[1]
     data_output = list()
-    label_output = list()
+    # label_output = list()
     data_a = np.array(_datas)
     _data_max = np.amax(data_a, 0).tolist()
     _data_min = np.amin(data_a, 0).tolist()
-    _label_max = np.amax(np.array(_label), 0)
-    _label_min = np.amin(np.array(_label), 0)
+    # _label_max = np.amax(np.array(_label), 0)
+    # _label_min = np.amin(np.array(_label), 0)
     for data in _datas:
         outrow = _init_output_list(data_a.shape[1])
         for i in range(len(data)):
@@ -132,15 +132,15 @@ def _normalize(X):
                 value = 0. if _data_max[i] == 0.0 else 1.
             outrow[i] = value
         data_output.append(outrow)
-    for label in _label:
-        outrow = float(-1)
-        if _label_max - _label_min != 0:
-            outrow = float(label - _label_min) / float(_label_max - _label_min)
-        else:
-            outrow = 0. if _label_max == 0 else 1.
-        label_output.append(outrow)
+    # for label in _label:
+    #     outrow = float(-1)
+    #     if _label_max - _label_min != 0:
+    #         outrow = float(label - _label_min) / float(_label_max - _label_min)
+    #     else:
+    #         outrow = 0. if _label_max == 0 else 1.
+    #     label_output.append(outrow)
 
-    return data_output, label_output
+    return data_output, X[1]
 
 
 def _init_output_list(len):

@@ -44,13 +44,13 @@ class DBN(object):
                 name='dbn', do_pretrain=True,
                 rbm_layers=[100, 80, 50, 25, 5],
                 finetune_act_func=finetune_act_func,
-                rbm_learning_rate=[float(opts.learning_rate_rbm)] if opts.learning_rate_rbm is not None else [0.1],
-                rbm_num_epochs=[int(opts.epochs_rbm)] if opts.epochs_rbm is not None else [100],
+                rbm_learning_rate=[float(opts.learning_rate_rbm)] if opts is not None and opts.learning_rate_rbm is not None else [0.1],
+                rbm_num_epochs=[int(opts.epochs_rbm)] if opts is not None and opts.epochs_rbm is not None else [100],
                 rbm_gibbs_k=[1],
                 rbm_gauss_visible=False, rbm_stddev=0.1,
                 momentum=0.9,
-                rbm_batch_size=[int(opts.batch_size)] if opts.batch_size is not None else [64],
-                finetune_learning_rate=0.01,
+                rbm_batch_size=[int(opts.batch_size)] if opts is not None and opts.batch_size is not None else [64],
+                finetune_learning_rate=0.001,
                 finetune_num_epochs=10, finetune_batch_size=64,
                 finetune_opt='momentum', finetune_loss_func='softmax_cross_entropy',
                 finetune_dropout=1)
@@ -88,12 +88,12 @@ class DBN(object):
 
 
 def trans_label_to_yadlt(datas):
-    # 0:normal, 1:dos, 2:u2r, 3:probe
-    _dict = {str(0.0): 0, str(float(1/3)): 1, str(float(2/3)): 2, str(1.0): 3}
+    # 0:normal, 1:dos, 2:u2r, 3:probe 4:unknow
+    _dict = {str(0): 0, str(1): 1, str(2): 2, str(3): 3, str(4): 4}
     output_label_list = list()
     for j in range(len(datas)):
         data = datas[j]
-        label = [0., 0., 0., 0.]
+        label = [0., 0., 0., 0., 0.]
         label[_dict[str(data)]] = 1.
         output_label_list.append(label)
     return np.array(output_label_list)
