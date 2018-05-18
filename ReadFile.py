@@ -22,7 +22,7 @@ class ReadFile(object):
             if opts.data_set == 'fullset':
                 data_set_path = '/KDDTrain+.csv'
             elif opts.data_set == '20set':
-                data_set_path = '20 Percent Training Set.csv'
+                data_set_path = '/20 Percent Training Set.csv'
 
         with open(pakage_path + data_set_path) as train_file:
             for line in train_file.readlines():
