@@ -4,6 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+import numpy as np
+import utils
 
 from yadlt.core.model import Model
 from yadlt.utils import tf_utils
@@ -69,6 +71,9 @@ class SupervisedModel(Model):
                 # Train model
                 self._train_model(train_X, train_Y, val_X, val_Y)
                 # Save model
+                _weight = self.tf_session.run(self.encoding_w_)
+                for matrix in _weight:
+                    np.savetxt(utils.get_root_path(False) + '/save/' + str(matrix.shape[0]) + 'to' + str(matrix.shape[1]) + '.txt', matrix)
                 self.tf_saver.save(self.tf_session, self.model_path)
 
     def predict(self, test_X):

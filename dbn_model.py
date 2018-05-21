@@ -73,12 +73,12 @@ class DBN(object):
                     for i, o in enumerate(teout):
                         np.save('test' + '-layer-' + str(i + 1) + '-test', o)
                         # Save output from each layer of the model
-            if True:
+            if False:
                 print('Saving the output of each layer for the test set')
                 save_layers_output('test')
 
             # Save output from each layer of the model
-            if True:
+            if False:
                 print('Saving the output of each layer for the train set')
                 save_layers_output('train')
 
