@@ -105,7 +105,7 @@ class Preprocess:
                     data_expend[self.dict[i]] = float(data[i])
             datas_expend.append(data_expend)
         # 处理targit
-        _dict_targit = {'normal': 0, 'dos': 1, 'u2r': 2, 'r2l': 3, 'probe': 4, 'unknown': 5}
+        _dict_targit = {'normal': 1, 'dos': 2, 'u2r': 3, 'r2l': 4, 'probe': 5, 'unknown': 6}
         targit_class = list()
         for i in range(len(targit)):
             targit_class.append(_dict_targit[targit[i]])

@@ -88,13 +88,13 @@ class DBN(object):
 
 
 def trans_label_to_yadlt(datas):
-    # 0:normal, 1:dos, 2:u2r, 3:probe 4:unknow
-    _dict = {str(0): 0, str(1): 1, str(2): 2, str(3): 3, str(4): 4}
+    # 1:normal, 2:dos, 3:u2r, 4:probe 5:unknow
+    _dict = {str(5): 5, str(1): 1, str(2): 2, str(3): 3, str(4): 4}
     output_label_list = list()
     for j in range(len(datas)):
         data = datas[j]
         label = [0., 0., 0., 0., 0.]
-        label[_dict[str(data)]] = 1.
+        label[_dict[str(data)] - 1] = 1.
         output_label_list.append(label)
     return np.array(output_label_list)
 
