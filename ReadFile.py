@@ -3,7 +3,7 @@
 
 
 class ReadFile(object):
-    def __init__(self, pakage_path, opts):
+    def __init__(self, pakage_path, opts=None):
         """
         return_list[
             attr_name[],
